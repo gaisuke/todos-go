@@ -11,9 +11,14 @@ import (
 )
 
 func main() {
+	e := echo.New()
 	postgres.InitDB()
 
 	db := postgres.DB
+
+	if err := postgres.InitMigration(db); err != nil {
+		e.Logger.Fatal("failed to run migrations:", err)
+	}
 
 	listService := services.NewListService(db)
 	sublistService := services.NewSublistService(db)
@@ -22,7 +27,6 @@ func main() {
 
 	handler := handlers.NewTodoHandler(listController, sublistController)
 
-	e := echo.New()
 	registerRoutes(e, handler)
 
 	// for testing only
@@ -42,7 +46,7 @@ func registerRoutes(e *echo.Echo, handler *handlers.TodoHandler) {
 	e.POST("/lists", handler.CreateList)
 	e.POST("/lists/:id/sublists", handler.CreateSublist)
 	e.PUT("/lists/:id", handler.UpdateList)
-	e.PUT("/sublists/:id", handler.UpdateSublist)
+	e.PUT("/lists/:list_id/sublists/:id", handler.UpdateSublist)
 	e.DELETE("/lists/:id", handler.DeleteList)
 	e.DELETE("/sublists/:id", handler.DeleteSublist)
 }

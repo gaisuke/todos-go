@@ -55,7 +55,7 @@ func (h *TodoHandler) GetListByID(ctx echo.Context) error {
 }
 
 func (h *TodoHandler) GetSublistsByListID(ctx echo.Context) error {
-	listID, _ := strconv.Atoi(ctx.Param("list_id"))
+	listID, _ := strconv.Atoi(ctx.Param("id"))
 	page, _ := strconv.Atoi(ctx.QueryParam("page"))
 	limit, _ := strconv.Atoi(ctx.QueryParam("limit"))
 	filters := map[string]interface{}{
@@ -106,12 +106,15 @@ func (h *TodoHandler) CreateList(ctx echo.Context) error {
 }
 
 func (h *TodoHandler) CreateSublist(ctx echo.Context) error {
+	id, _ := strconv.Atoi(ctx.Param("id"))
 	var sublist models.Sublist
 	if err := ctx.Bind(&sublist); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
+
+	sublist.ListID = id
 
 	if err := h.sublistController.Create(&sublist); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]interface{}{
@@ -143,6 +146,7 @@ func (h *TodoHandler) UpdateList(ctx echo.Context) error {
 }
 
 func (h *TodoHandler) UpdateSublist(ctx echo.Context) error {
+	listId, _ := strconv.Atoi(ctx.Param("list_id"))
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	var sublist models.Sublist
 	if err := ctx.Bind(&sublist); err != nil {
@@ -151,6 +155,7 @@ func (h *TodoHandler) UpdateSublist(ctx echo.Context) error {
 		})
 	}
 
+	sublist.ListID = listId
 	sublist.ID = id
 
 	if err := h.sublistController.Update(&sublist); err != nil {
@@ -171,7 +176,7 @@ func (h *TodoHandler) DeleteList(ctx echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusOK, map[string]string{
-		"message": "Sublist deleted successfully",
+		"message": "List deleted successfully",
 	})
 }
 
